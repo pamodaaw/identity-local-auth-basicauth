@@ -22,14 +22,22 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authenticator.basicauth.BasicAuthenticator;
+import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 
 /**
  * @scr.component name="identity.application.authenticator.basicauth.component" immediate="true"
  * @scr.reference name="realm.service"
- * interface="org.wso2.carbon.user.core.service.RealmService"cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ * interface="org.wso2.carbon.user.core.service.RealmService"
+ * cardinality="1..1" policy="dynamic"
+ * bind="setRealmService"
+ * unbind="unsetRealmService"
+ * @scr.reference name="IdentityGovernanceService"
+ * interface="org.wso2.carbon.identity.governance.IdentityGovernanceService"
+ * cardinality="1..1" policy="dynamic"
+ * bind="setIdentityGovernanceService"
+ * unbind="unsetIdentityGovernanceService"
  */
 public class BasicAuthenticatorServiceComponent {
 
@@ -69,4 +77,13 @@ public class BasicAuthenticatorServiceComponent {
         BasicAuthenticatorServiceComponent.realmService = null;
     }
 
+    protected void setIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
+
+        BasicAuthenticatorDataHolder.getInstance().setIdentityGovernanceService(identityGovernanceService);
+    }
+
+    protected void unsetIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
+
+        BasicAuthenticatorDataHolder.getInstance().setIdentityGovernanceService(null);
+    }
 }
