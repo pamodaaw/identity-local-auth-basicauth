@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authenticator.basicauth.BasicAuthenticator;
+import org.wso2.carbon.identity.application.authenticator.basicauth.PasswordOnboardRegistrationExecutor;
 import org.wso2.carbon.identity.application.authenticator.basicauth.attribute.handler.BasicAuthAuthAttributeHandler;
 import org.wso2.carbon.identity.auth.attribute.handler.AuthAttributeHandler;
 import org.wso2.carbon.identity.captcha.util.CaptchaConstants;
@@ -35,6 +36,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.user.registration.RegistrationStepExecutor;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -86,6 +88,10 @@ public class BasicAuthenticatorServiceComponent {
 
             BasicAuthAuthAttributeHandler authAttributeHandler = new BasicAuthAuthAttributeHandler();
             ctxt.getBundleContext().registerService(AuthAttributeHandler.class.getName(), authAttributeHandler, null);
+
+            ctxt.getBundleContext().registerService(RegistrationStepExecutor.class.getName(),
+                                                    PasswordOnboardRegistrationExecutor.getInstance(), null);
+
             if (log.isDebugEnabled()) {
                 log.info("BasicAuthenticator bundle is activated");
             }
