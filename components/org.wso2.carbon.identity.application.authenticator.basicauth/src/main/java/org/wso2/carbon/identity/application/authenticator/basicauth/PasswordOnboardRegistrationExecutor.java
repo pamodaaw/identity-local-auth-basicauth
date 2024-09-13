@@ -28,15 +28,17 @@ import org.wso2.carbon.identity.user.registration.model.response.ExecutorRespons
 import org.wso2.carbon.identity.user.registration.model.response.Message;
 import org.wso2.carbon.identity.user.registration.model.response.NextStepResponse;
 import org.wso2.carbon.identity.user.registration.model.response.RequiredParam;
-import org.wso2.carbon.identity.user.registration.util.RegistrationFlowConstants;
+import org.wso2.carbon.identity.user.registration.util.RegistrationConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.user.registration.util.RegistrationFlowConstants.StepStatus.COMPLETE;
-import static org.wso2.carbon.identity.user.registration.util.RegistrationFlowConstants.StepStatus.NOT_STARTED;
-import static org.wso2.carbon.identity.user.registration.util.RegistrationFlowConstants.StepStatus.USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.RegExecutorBindingType.AUTHENTICATOR;
+import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.RegExecutorType.CREDENTIAL;
+import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.StepStatus.COMPLETE;
+import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.StepStatus.NOT_STARTED;
+import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.StepStatus.USER_INPUT_REQUIRED;
 
 public class PasswordOnboardRegistrationExecutor implements RegistrationStepExecutor {
 
@@ -52,25 +54,25 @@ public class PasswordOnboardRegistrationExecutor implements RegistrationStepExec
     @Override
     public String getName() {
 
-        return "PasswordOnboarding";
+        return "PasswordOnboarder";
     }
 
     @Override
-    public RegistrationFlowConstants.RegistrationExecutorBindingType getBindingType() throws RegistrationFrameworkException {
+    public RegistrationConstants.RegExecutorBindingType getBindingType() {
 
-        return RegistrationFlowConstants.RegistrationExecutorBindingType.AUTHENTICATOR;
+        return AUTHENTICATOR;
     }
 
     @Override
-    public String getBoundIdentifier() throws RegistrationFrameworkException {
+    public String getBoundIdentifier() {
 
         return BasicAuthenticatorConstants.AUTHENTICATOR_NAME;
     }
 
     @Override
-    public String getExecutorType() throws RegistrationFrameworkException {
+    public String getExecutorType() {
 
-        return RegistrationFlowConstants.RegistrationExecutorType.CREDENTIAL.toString();
+        return CREDENTIAL.toString();
     }
 
     @Override
@@ -96,16 +98,16 @@ public class PasswordOnboardRegistrationExecutor implements RegistrationStepExec
     }
 
     @Override
-    public RegistrationFlowConstants.StepStatus execute(Map<String, String> inputs, RegistrationContext context,
-                                                        NextStepResponse response,
-                                                        RegistrationStepExecutorConfig config) throws RegistrationFrameworkException {
+    public RegistrationConstants.StepStatus execute(Map<String, String> inputs, RegistrationContext context,
+                                                    NextStepResponse response, RegistrationStepExecutorConfig config)
+            throws RegistrationFrameworkException {
 
-        RegistrationFlowConstants.StepStatus status = context.getCurrentStepStatus();
+        RegistrationConstants.StepStatus status = context.getCurrentStepStatus();
         RegistrationRequestedUser user = context.getRegisteringUser();
 
         if (NOT_STARTED.equals(status)) {
             Message message = new Message();
-            message.setType(RegistrationFlowConstants.MessageType.INFO);
+            message.setType(RegistrationConstants .MessageType.INFO);
 
             List<RequiredParam> requiredParams = this.getRequiredParams();
 
@@ -130,21 +132,22 @@ public class PasswordOnboardRegistrationExecutor implements RegistrationStepExec
                                 List<RequiredParam> params, Message message) {
 
         ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setName(config.getName());
-        executorResponse.setExecutorName(this.getName());
+        executorResponse.setName(this.getName());
+        executorResponse.setType(this.getExecutorType());
         executorResponse.setId(config.getId());
 
         ExecutorMetadata metadata = new ExecutorMetadata();
         metadata.setI18nKey("executor.passwordOnboarding");
-        metadata.setPromptType(RegistrationFlowConstants.PromptType.USER_PROMPT);
+        metadata.setPromptType(RegistrationConstants.PromptType.USER_PROMPT);
         metadata.setRequiredParams(params);
+
         executorResponse.setMetadata(metadata);
+        executorResponse.setMessage(message);
 
         response.addExecutor(executorResponse);
-        response.addMessage(message);
     }
 
-    private RegistrationFlowConstants.StepStatus processInput(Map<String, String> inputs,
+    private RegistrationConstants.StepStatus processInput(Map<String, String> inputs,
                                                               RegistrationContext context) throws RegistrationFrameworkException {
 
         RegistrationRequestedUser user = context.getRegisteringUser();
@@ -167,7 +170,6 @@ public class PasswordOnboardRegistrationExecutor implements RegistrationStepExec
                 user.setCredential(inputs.get(PASSWORD));
             }
         }
-
-            return COMPLETE;
+        return COMPLETE;
     }
 }
