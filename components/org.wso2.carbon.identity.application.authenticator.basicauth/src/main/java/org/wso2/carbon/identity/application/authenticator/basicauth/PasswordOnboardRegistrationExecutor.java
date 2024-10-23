@@ -18,158 +18,111 @@
 
 package org.wso2.carbon.identity.application.authenticator.basicauth;
 
-import org.wso2.carbon.identity.user.registration.RegistrationStepExecutor;
-import org.wso2.carbon.identity.user.registration.config.RegistrationStepExecutorConfig;
-import org.wso2.carbon.identity.user.registration.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.model.RegistrationRequestedUser;
-import org.wso2.carbon.identity.user.registration.model.response.ExecutorMetadata;
-import org.wso2.carbon.identity.user.registration.model.response.ExecutorResponse;
-import org.wso2.carbon.identity.user.registration.model.response.Message;
-import org.wso2.carbon.identity.user.registration.model.response.NextStepResponse;
-import org.wso2.carbon.identity.user.registration.model.response.RequiredParam;
-import org.wso2.carbon.identity.user.registration.util.RegistrationConstants;
+import org.wso2.carbon.identity.user.self.registration.action.AttributeCollection;
+import org.wso2.carbon.identity.user.self.registration.action.Authentication;
+import org.wso2.carbon.identity.user.self.registration.action.CredentialEnrollment;
+import org.wso2.carbon.identity.user.self.registration.model.ExecutorResponse;
+import org.wso2.carbon.identity.user.self.registration.model.InitData;
+import org.wso2.carbon.identity.user.self.registration.model.InputMetaData;
+import org.wso2.carbon.identity.user.self.registration.model.RegistrationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.RegExecutorBindingType.AUTHENTICATOR;
-import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.RegExecutorType.CREDENTIAL;
-import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.StepStatus.COMPLETE;
-import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.StepStatus.NOT_STARTED;
-import static org.wso2.carbon.identity.user.registration.util.RegistrationConstants.StepStatus.USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.user.self.registration.util.Constants.STATUS_ACTION_COMPLETE;
+import static org.wso2.carbon.identity.user.self.registration.util.Constants.STATUS_ATTR_REQUIRED;
+import static org.wso2.carbon.identity.user.self.registration.util.Constants.STATUS_CRED_REQUIRED;
 
-public class PasswordOnboardRegistrationExecutor implements RegistrationStepExecutor {
+public class PasswordOnboardRegistrationExecutor implements Authentication, AttributeCollection, CredentialEnrollment {
 
-    private static PasswordOnboardRegistrationExecutor instance = new PasswordOnboardRegistrationExecutor();
-    private static final String PASSWORD = "password";
-    private static final String USERNAME_URI = "http://wso2.org/claims/username";
-
-    public static PasswordOnboardRegistrationExecutor getInstance() {
-
-        return instance;
-    }
-
-    @Override
     public String getName() {
 
-        return "PasswordOnboarder";
+        return "PasswordOnboard";
     }
 
     @Override
-    public RegistrationConstants.RegExecutorBindingType getBindingType() {
+    public ExecutorResponse authenticate(Map<String, String> input, RegistrationContext context) {
 
-        return AUTHENTICATOR;
+        return null;
     }
 
     @Override
-    public String getBoundIdentifier() {
+    public ExecutorResponse collect(Map<String, String> input, RegistrationContext context) {
 
-        return BasicAuthenticatorConstants.AUTHENTICATOR_NAME;
-    }
-
-    @Override
-    public String getExecutorType() {
-
-        return CREDENTIAL.toString();
-    }
-
-    @Override
-    public List<RequiredParam> getRequiredParams() {
-
-        List<RequiredParam> params = new ArrayList<>();
-
-        RequiredParam param1 = new RequiredParam();
-        param1.setName(USERNAME_URI);
-        param1.setAvailableValue(null);
-        param1.setConfidential(false);
-        param1.setMandatory(true);
-        params.add(param1);
-
-        RequiredParam param2 = new RequiredParam();
-        param2.setName(PASSWORD);
-        param2.setAvailableValue(null);
-        param2.setConfidential(true);
-        param2.setMandatory(true);
-        params.add(param2);
-
-        return params;
-    }
-
-    @Override
-    public RegistrationConstants.StepStatus execute(Map<String, String> inputs, RegistrationContext context,
-                                                    NextStepResponse response, RegistrationStepExecutorConfig config)
-            throws RegistrationFrameworkException {
-
-        RegistrationConstants.StepStatus status = context.getCurrentStepStatus();
-        RegistrationRequestedUser user = context.getRegisteringUser();
-
-        if (NOT_STARTED.equals(status)) {
-            Message message = new Message();
-            message.setType(RegistrationConstants .MessageType.INFO);
-
-            List<RequiredParam> requiredParams = this.getRequiredParams();
-
-            if (user.getUsername() == null) {
-                message.setMessage("Onboard username and password");
-            } else {
-                // Username is already defined. No need to prompt for username again. Prompt only the password.
-                message.setMessage("Onboard password");
-                requiredParams = this.getRequiredParams().subList(1, 1);
-            }
-            updateResponse(response, config, requiredParams, message);
-            context.updateRequestedParameterList(this.getRequiredParams());
-            return USER_INPUT_REQUIRED;
-        } else if (USER_INPUT_REQUIRED.equals(status)) {
-            return processInput(inputs, context);
-        } else {
-            throw new RegistrationFrameworkException("Unsupported step status");
+        // Implement the actual task logic here
+        if (input != null && !input.isEmpty() && input.containsKey("username")) {
+            // Store the email address in the context
+            // Update the required data
+            return new ExecutorResponse("COMPLETE");
         }
+        ExecutorResponse executorResponse = new ExecutorResponse("ATTRIBUTES_REQUIRED");
+        executorResponse.setRequiredData(getUsernameData());
+        return executorResponse;
     }
 
-    private void updateResponse(NextStepResponse response, RegistrationStepExecutorConfig config,
-                                List<RequiredParam> params, Message message) {
+    @Override
+    public ExecutorResponse enrollCredential(Map<String, String> input, RegistrationContext context) {
 
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setName(this.getName());
-        executorResponse.setType(this.getExecutorType());
-        executorResponse.setId(config.getId());
-
-        ExecutorMetadata metadata = new ExecutorMetadata();
-        metadata.setI18nKey("executor.passwordOnboarding");
-        metadata.setPromptType(RegistrationConstants.PromptType.USER_PROMPT);
-        metadata.setRequiredParams(params);
-
-        executorResponse.setMetadata(metadata);
-        executorResponse.setMessage(message);
-
-        response.addExecutor(executorResponse);
-    }
-
-    private RegistrationConstants.StepStatus processInput(Map<String, String> inputs,
-                                                              RegistrationContext context) throws RegistrationFrameworkException {
-
-        RegistrationRequestedUser user = context.getRegisteringUser();
-
-//        for (RequiredParam param : context.getRequestedParameters()) {
-//            if (inputs.get(param.getName()) == null) {
-//                throw new RegistrationFrameworkException(param.getName() + " is not set as expected in the step.");
-//            }
-//            if (param.getName().equals(USERNAME_URI)) {
-//                user.setUsername(inputs.get(USERNAME_URI));
-//            } else if (param.getName().equals(PASSWORD)) {
-//                user.setPasswordless(false);
-//                user.setCredential(inputs.get(PASSWORD));            }
-//        }
-        for (String key : inputs.keySet()) {
-            if (key.equals(USERNAME_URI)) {
-                user.setUsername(inputs.get(USERNAME_URI));
-            } else if (key.equals(PASSWORD)) {
-                user.setPasswordless(false);
-                user.setCredential(inputs.get(PASSWORD));
-            }
+        // Implement the actual task logic here
+        if (input != null && !input.isEmpty() && input.containsKey("password")) {
+            // Validate OTP
+            return new ExecutorResponse(STATUS_ACTION_COMPLETE);
         }
-        return COMPLETE;
+
+        ExecutorResponse executorResponse = new ExecutorResponse(STATUS_CRED_REQUIRED);
+        executorResponse.setRequiredData(getPasswordData());
+        return executorResponse;
+    }
+
+    @Override
+    public List<InitData> getInitData() {
+
+        List<InitData> response = new ArrayList<>();
+        response.add(getAttrCollectInitData());
+        response.add(getCredentialEnrollmentInitData());
+        return response;
+    }
+
+    @Override
+    public InitData getCredentialEnrollmentInitData() {
+
+        return new InitData(STATUS_CRED_REQUIRED, getPasswordData());
+    }
+
+    @Override
+    public InitData getAuthInitData() {
+
+        List<InputMetaData> inputMetaData = new ArrayList<>();
+        inputMetaData.addAll(getUsernameData());
+        inputMetaData.addAll(getPasswordData());
+        return new InitData("AUTH_REQUIRED", inputMetaData);
+    }
+
+    @Override
+    public InitData getAttrCollectInitData() {
+
+        return new InitData(STATUS_ATTR_REQUIRED, getUsernameData());
+    }
+
+    private List<InputMetaData> getUsernameData() {
+
+        // Define a new list of InputMetaData and add the data object and return the list.
+        List<InputMetaData> inputMetaData = new ArrayList<>();
+        InputMetaData e1 = new InputMetaData("username", "attribute", 1);
+        e1.setMandatory(true);
+        e1.setValidationRegex("*");
+        inputMetaData.add(e1);
+        return inputMetaData;
+    }
+
+    private List<InputMetaData> getPasswordData() {
+
+        List<InputMetaData> inputMetaData = new ArrayList<>();
+        InputMetaData e2 = new InputMetaData("password", "credential", 1);
+        e2.setMandatory(true);
+        e2.setValidationRegex("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+        inputMetaData.add(e2);
+        return inputMetaData;
     }
 }

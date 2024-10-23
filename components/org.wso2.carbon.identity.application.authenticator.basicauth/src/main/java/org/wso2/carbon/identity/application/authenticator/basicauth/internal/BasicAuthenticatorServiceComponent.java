@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
-import org.wso2.carbon.identity.user.registration.RegistrationStepExecutor;
+import org.wso2.carbon.identity.user.self.registration.graphexecutor.executor.Executor;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -89,8 +89,8 @@ public class BasicAuthenticatorServiceComponent {
             BasicAuthAuthAttributeHandler authAttributeHandler = new BasicAuthAuthAttributeHandler();
             ctxt.getBundleContext().registerService(AuthAttributeHandler.class.getName(), authAttributeHandler, null);
 
-            ctxt.getBundleContext().registerService(RegistrationStepExecutor.class.getName(),
-                                                    PasswordOnboardRegistrationExecutor.getInstance(), null);
+            PasswordOnboardRegistrationExecutor pwdOnboardRegExecutor = new PasswordOnboardRegistrationExecutor();
+            ctxt.getBundleContext().registerService(Executor.class.getName(), pwdOnboardRegExecutor, null);
 
             if (log.isDebugEnabled()) {
                 log.info("BasicAuthenticator bundle is activated");

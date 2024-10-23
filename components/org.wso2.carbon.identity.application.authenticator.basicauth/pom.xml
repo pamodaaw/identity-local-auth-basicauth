@@ -131,7 +131,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.user.registration</artifactId>
+            <artifactId>org.wso2.carbon.identity.user.self.registration</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -191,7 +191,7 @@
                             org.wso2.securevault.*; version="${org.wso2.securevault.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.*; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.context.*; version="${carbon.kernel.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.user.registration.*; version="${carbon.identity.framework.imp.pkg.version.range}"
+                            org.wso2.carbon.identity.user.self.registration.*; version="${carbon.identity.framework.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.authenticator.basicauth.internal,
